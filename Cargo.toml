@@ -1,5 +1,5 @@
 [package]
-name = "radial-dots"
+name = "radial_dots"
 version = "0.1.0"
 authors = ["Maxwell Huang-Hobbs <mhuan13@gmail.com>"]
 edition = "2018"
@@ -9,3 +9,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 wasm-bindgen = "0.2"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "Document",
+    "Element",
+]
