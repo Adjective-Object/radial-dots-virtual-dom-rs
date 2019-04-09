@@ -1,3 +1,3 @@
-pub mod Diagram;
-pub mod Dot;
-pub mod TextPath;
+pub mod diagram;
+pub mod dot;
+pub mod text_path;

@@ -1,16 +1,16 @@
-use crate::fig::TextPath::*;
+use crate::drawing_style::DrawingStyle;
+use crate::fig::text_path::*;
 use crate::float_utils::fmax;
 use crate::geom::*;
+use crate::svg::svg_drawable::SvgDrawable;
 use crate::svg::util::*;
-use crate::svg::SvgDrawable::SvgDrawable;
-use crate::DrawingStyle::DrawingStyle;
 
-pub struct Diagram<'diagram_lifetime> {
-    pub paths: Vec<TextPath<'diagram_lifetime>>,
+pub struct Diagram {
+    pub paths: Vec<TextPath>,
     pub diagram_padding: f64,
 }
 
-impl<'diagram_lifetime> Diagram<'diagram_lifetime> {
+impl Diagram {
     fn get_bounding_rect(&self, style: &DrawingStyle) -> Rect {
         let mut radius: f64 = 1.0;
         for path in self.paths.iter() {
@@ -26,7 +26,7 @@ impl<'diagram_lifetime> Diagram<'diagram_lifetime> {
     }
 }
 
-impl<'diagram_lifetime> SvgDrawable for Diagram<'diagram_lifetime> {
+impl SvgDrawable for Diagram {
     fn as_svg(&self, style: &DrawingStyle) -> String {
         let mut svg_parts: Vec<String> = Vec::with_capacity(self.paths.len() + 1);
         let diagram_bounds: Rect = self.get_bounding_rect(style);
@@ -41,6 +41,13 @@ impl<'diagram_lifetime> SvgDrawable for Diagram<'diagram_lifetime> {
             ));
         }
 
-        return svg_parts.join("");
+        return format!(
+            "<svg viewBox='{} {} {} {}'>{}</svg>",
+            diagram_bounds.x,
+            diagram_bounds.y,
+            diagram_bounds.width,
+            diagram_bounds.height,
+            svg_parts.join("")
+        );
     }
 }

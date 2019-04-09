@@ -1,5 +1,5 @@
-use crate::fig::Dot::Dot;
-use crate::fig::TextPath::ArcStyle;
+use crate::fig::dot::Dot;
+use crate::fig::text_path::ArcStyle;
 
 pub struct DrawingStyle {
     pub stroke_color: String,

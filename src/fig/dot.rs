@@ -1,6 +1,6 @@
+use crate::drawing_style::DrawingStyle;
 use crate::float_utils::fmax;
-use crate::svg::SvgDrawable::SvgDrawable;
-use crate::DrawingStyle::DrawingStyle;
+use crate::svg::svg_drawable::SvgDrawable;
 
 pub struct Dot {
     pub circle_radius: f64,

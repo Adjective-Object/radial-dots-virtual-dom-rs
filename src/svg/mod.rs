@@ -1,2 +1,2 @@
-pub mod SvgDrawable;
+pub mod svg_drawable;
 pub mod util;
