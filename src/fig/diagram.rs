@@ -5,6 +5,7 @@ use crate::geom::*;
 use crate::svg::svg_drawable::SvgDrawable;
 use crate::svg::util::*;
 
+#[derive(Debug)]
 pub struct Diagram {
     pub paths: Vec<TextPath>,
     pub diagram_padding: f64,
@@ -42,7 +43,7 @@ impl SvgDrawable for Diagram {
         }
 
         return format!(
-            "<svg viewBox='{} {} {} {}'>{}</svg>",
+            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='{} {} {} {}'>{}</svg>",
             diagram_bounds.x,
             diagram_bounds.y,
             diagram_bounds.width,

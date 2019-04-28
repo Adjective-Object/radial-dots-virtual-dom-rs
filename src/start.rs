@@ -5,10 +5,12 @@ use crate::fig::text_path::ArcStyle;
 use crate::fig::text_path::TextPath;
 use crate::svg::svg_drawable::SvgDrawable;
 use wasm_bindgen::prelude::*;
+// use wasm_bindgen::JsCast;
 
 // use css_rs_macro::css;
 use virtual_dom_rs::*;
 
+#[derive(Debug)]
 struct FullApplicationState {
     style: DrawingStyle,
     diagram: Diagram,
@@ -69,13 +71,13 @@ struct DotsRenderer {}
 impl StatelessComponent<FullApplicationState> for DotsRenderer {
     fn render(props: &FullApplicationState) -> VirtualNode {
         let raw_svg_string: String = props.diagram.as_svg(&props.style);
-        // let img_base64_src: String = format!(
-        //     "data:image/svg+xml {}",
-        //     base64::encode_config(&raw_svg_string, base64::URL_SAFE)
-        // );
+        let img_base64_src: String = format!(
+            "data:image/svg+xml;base64,{}",
+            base64::encode_config(&raw_svg_string, base64::STANDARD)
+        );
 
         return html! {
-            {raw_svg_string}
+            <img class="dot-ring-img" src=img_base64_src />
         };
     }
 }
@@ -98,11 +100,16 @@ impl<'a> StatelessComponent<ColorEditorProps<'a>> for ColorEditor {
 }
 
 struct DotEditor {}
-impl StatelessComponent<Dot> for DotEditor {
+struct DotProps<'a> {
+    dot: &'a Dot,
+    dot_id: &'a str,
+}
+
+impl<'a> StatelessComponent<DotProps<'a>> for DotEditor {
     /// TODO this would be nice to break up into separate forms
     /// as separate components, but there's no concept of Fragments
     /// in this StatelesComponent stuff.
-    fn render(props: &Dot) -> VirtualNode {
+    fn render(props: &DotProps) -> VirtualNode {
         return html! {
             <form class="dot-editor">
                 <label>Circle Radius</label>
@@ -112,14 +119,18 @@ impl StatelessComponent<Dot> for DotEditor {
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.circle_radius} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.circle_radius} />
                 <input
                     name="circle_radius"
                     type="number"
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.circle_radius} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.circle_radius} />
 
                 <label>Ring Radius</label>
                 <input
@@ -128,14 +139,18 @@ impl StatelessComponent<Dot> for DotEditor {
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.ring_radius} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.ring_radius} />
                 <input
                     name="ring_radius"
                     type="number"
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.circle_radius} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.circle_radius} />
 
                 <label>Ring Stroke Width</label>
                 <input
@@ -144,14 +159,18 @@ impl StatelessComponent<Dot> for DotEditor {
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.ring_stroke_width} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.ring_stroke_width} />
                 <input
                     name="ring_stroke_width"
                     type="number"
                     step="0.1"
                     min="0.0"
                     max="10.0"
-                    value={props.circle_radius} />
+                    data_input_type="dot_input"
+                    data_dot_id={props.dot_id}
+                    value={props.dot.circle_radius} />
             </form>
         };
     }
@@ -163,10 +182,16 @@ impl StatelessComponent<DrawingStyle> for StyleEditor {
         return html! {
             <div class="style-editor">
                 <h3 class="style-editor-subheader">Default One Dot</h3>
-                {DotEditor::render(&props.default_one_dot_style)}
+                {DotEditor::render(&DotProps {
+                    dot: &props.default_one_dot_style,
+                    dot_id: "default-one-dot"
+                })}
 
                 <h3 class="style-editor-subheader">Default Zero Dot</h3>
-                {DotEditor::render(&props.default_zero_dot_style)}
+                {DotEditor::render(&DotProps {
+                    dot: &props.default_zero_dot_style,
+                    dot_id: "default-zero-dot"
+                })}
 
                 {ColorEditor::render(&ColorEditorProps {
                     name: "Stroke Color",
@@ -216,8 +241,9 @@ impl StatelessComponent<FullApplicationState> for Controls {
 struct ApplicationRenderer {}
 impl StatelessComponent<FullApplicationState> for ApplicationRenderer {
     fn render(props: &FullApplicationState) -> VirtualNode {
+        let background_style = format!("background-color: {}", props.style.background_color);
         return html! {
-            <div class="app-split">
+            <div class="app-split" style=background_style>
                 {DotsRenderer::render(props)}
                 {Controls::render(props)}
             </div>
@@ -225,29 +251,130 @@ impl StatelessComponent<FullApplicationState> for ApplicationRenderer {
     }
 }
 
-#[wasm_bindgen(start)]
-#[allow(dead_code)] // rust improperly marks the wasm entrypoint as dead code
-pub fn start() {
-    // get the root of the application
-    let window = web_sys::window().expect("no global `window` exists");
-    let document = window.document().expect("should have a document on window");
-    let app_host_result: Result<Option<web_sys::Element>, wasm_bindgen::JsValue> =
-        document.query_selector("#application-container");
-    let host_elem: web_sys::Element =
-        match app_host_result.expect("There should be an #application-container") {
-            Some(x) => x,
-            None => {
-                panic!();
+#[wasm_bindgen]
+#[derive(Debug)]
+pub struct AppMount {
+    dom: VirtualNode,
+}
+
+#[wasm_bindgen]
+#[derive(Debug)]
+pub struct App {
+    state: FullApplicationState,
+    mount_state: Option<AppMount>,
+}
+
+/// Create a new app and return it
+#[wasm_bindgen]
+#[allow(dead_code)]
+pub fn init_app() -> App {
+    return App {
+        state: get_initial_state(),
+        mount_state: None,
+    };
+}
+
+/// Mounts the app at the given seelctor.
+///
+/// Returns true iff the app mounted incorrectly
+/// Will throw if no element with an appropriate selector is found
+/// or if the provided app already has a dom.
+#[wasm_bindgen]
+#[allow(dead_code)]
+pub fn mount(host_elem: Element, app: &mut App) -> bool {
+    match &app.mount_state {
+        Some(_x) => {
+            return false;
+        }
+        None => {
+            let next_dom = ApplicationRenderer::render(&app.state);
+            host_elem.set_inner_html(&next_dom.to_string());
+            app.mount_state = Some(AppMount { dom: next_dom });
+            return true;
+        }
+    };
+}
+
+#[allow(dead_code)]
+#[wasm_bindgen]
+pub fn action_update_default_dot(
+    app: &mut App,
+    dot_id: &str,
+    input_name: &str,
+    new_value: f64,
+) -> bool {
+    web_sys::console::log_1(
+        &format!(
+            "rust called with {:?} {:?} {:?}",
+            &dot_id, input_name, new_value
+        )
+        .into(),
+    );
+
+    let default_dot: &mut Dot = match dot_id.as_ref() {
+        "default-one-dot" => &mut app.state.style.default_one_dot_style,
+        "default-zero-dot" => &mut app.state.style.default_zero_dot_style,
+        _ => {
+            web_sys::console::log_1(&format!("failed to match dot_id {:?}", &dot_id).into());
+            return false;
+        }
+    };
+
+    web_sys::console::log_1(&format!("bound dot",).into());
+
+    match input_name.as_ref() {
+        "circle_radius" => {
+            web_sys::console::log_1(&format!("write circle_radius",).into());
+            default_dot.circle_radius = new_value;
+        }
+        "ring_radius" => {
+            web_sys::console::log_1(&format!("write ring_radius",).into());
+            default_dot.ring_radius = new_value;
+        }
+        "ring_stroke_width" => {
+            web_sys::console::log_1(&format!("write ring_stroke_width",).into());
+            default_dot.ring_stroke_width = new_value;
+        }
+        _ => {
+            web_sys::console::log_1(&format!("unexpected input name {:?}", &input_name).into());
+            return false;
+        }
+    };
+
+    return true;
+}
+
+/// Updates the rendered app
+#[allow(dead_code)]
+#[wasm_bindgen]
+pub fn rerender_app(host_elem: Element, app: &mut App) -> bool {
+    web_sys::console::log_1(&"rendering app".into());
+    match &mut app.mount_state {
+        None => {
+            web_sys::console::log_1(&"no mount state - not rerendering".into());
+            return false;
+        }
+        Some(mount_state) => {
+            web_sys::console::log_1(&"rendering".into());
+            let next_dom = ApplicationRenderer::render(&app.state);
+            web_sys::console::log_1(&"diffing".into());
+            let patches = virtual_dom_rs::diff(&mount_state.dom, &next_dom);
+
+            // dom patching consumes the node
+            web_sys::console::log_1(&format!("applying patches {:?}", patches).into());
+            let patch_result = virtual_dom_rs::patch(host_elem, &patches);
+
+            match patch_result {
+                Ok(_) => {}
+                Err(e) => {
+                    web_sys::console::log_1(&format!("failure during patching {:?}", e).into())
+                }
             }
-        };
 
-    // boot the app
-    let state = get_initial_state();
+            web_sys::console::log_1(&"updating mount state".into());
+            app.mount_state = Some(AppMount { dom: next_dom });
+        }
+    };
 
-    let virtual_dom = ApplicationRenderer::render(&state);
-
-    // perform initial render to document
-    host_elem.set_inner_html(&virtual_dom.to_string());
-
-    // TODO set up update + diffing system loop
+    return true;
 }

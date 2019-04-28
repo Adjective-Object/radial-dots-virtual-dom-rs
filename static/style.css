@@ -18,6 +18,7 @@ html,
 .app-split {
   display: flex;
   height: 100%;
+  align-items: stretch;
 }
 
 .control-bar {
@@ -80,4 +81,9 @@ input[type="color"] {
   justify-content: space-between;
   flex-direction: row;
   width: 100%;
+}
+
+.dot-ring-img {
+  min-width: 0;
+  min-height: 0;
 }

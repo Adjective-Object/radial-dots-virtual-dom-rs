@@ -2,6 +2,7 @@ use crate::drawing_style::DrawingStyle;
 use crate::float_utils::fmax;
 use crate::svg::svg_drawable::SvgDrawable;
 
+#[derive(Debug)]
 pub struct Dot {
     pub circle_radius: f64,
     pub ring_radius: f64,
@@ -19,11 +20,11 @@ impl SvgDrawable for Dot {
     fn as_svg(&self, style: &DrawingStyle) -> String {
         format!(
             concat!(
-                "<circle r={circle_radius} fill={stroke_color} />",
-                "<circle r={ring_radius} ",
+                "<circle r=\"{circle_radius}\" fill=\"{stroke_color}\" />",
+                "<circle r=\"{ring_radius}\" ",
                 "fill=\"transparent\" ",
-                "stroke={stroke_color} ",
-                "stroke-width={ring_stroke_width} />",
+                "stroke=\"{stroke_color}\" ",
+                "stroke-width=\"{ring_stroke_width}\" />",
             ),
             circle_radius = self.circle_radius,
             ring_radius = self.ring_radius,

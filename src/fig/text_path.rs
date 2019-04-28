@@ -11,12 +11,14 @@ use crate::utf_to_binary::text_to_binary;
 //     fn log(s: &str);
 // }
 
+#[derive(Debug)]
 pub struct ArcStyle {
     pub radius: f64,
     pub arc_percentage: f64,
     pub arc_offset_percentage: f64,
 }
 
+#[derive(Debug)]
 pub struct TextPath {
     pub zero_dot_style: Option<Dot>,
     pub one_dot_style: Option<Dot>,

@@ -7,13 +7,11 @@ successor to [`dots`](http://huang-hobbs.co/dots)
 ```bash
 rustup install nightly-2019-03-22
 rustup default nightly-2019-03-22
-wasm-pack build --target web --dev --out-dir=dist
+yarn # for webpack
 ```
 
 ## Dev loop
-The dev task uses the python module `SimpleHTTPServer`, so make sure you have python installed. Alternatively, just edit scripts/dev-server.sh to use your http server of choice.
 
 ```bash
-make dev
+webpack-dev-server
 ```
-

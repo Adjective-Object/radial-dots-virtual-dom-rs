@@ -1,6 +1,7 @@
 use crate::fig::dot::Dot;
 use crate::fig::text_path::ArcStyle;
 
+#[derive(Debug)]
 pub struct DrawingStyle {
     pub stroke_color: String,
     pub background_color: String,
